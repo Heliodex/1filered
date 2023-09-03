@@ -1,9 +1,12 @@
-local Spawn = require(script.Parent.Spawn)
+local Spawn = require "./Spawn"
 
 local Promise = {}
 Promise.__index = Promise
 
-function Promise.Promise(Callback: (Resolve: (...any) -> (), Reject: (...any) -> ()) -> ())
+function Promise.Promise(Callback: (
+	Resolve: (...any) -> (),
+	Reject: (...any) -> ()
+) -> ())
 	local self = setmetatable({}, Promise)
 
 	self.Status = "Pending"
@@ -28,7 +31,9 @@ function Promise.Promise(Callback: (Resolve: (...any) -> (), Reject: (...any) ->
 	return self
 end
 
-Promise.new = Promise.Promise :: (Callback: (Resolve: (...any) -> (), Reject: (...any) -> ()) -> ()) -> Promise
+Promise.new = Promise.Promise :: (
+	Callback: (Resolve: (...any) -> (), Reject: (...any) -> ()) -> ()
+) -> Promise
 
 function Promise.Resolve(...: any): Promise
 	local self = setmetatable({}, Promise)
@@ -55,7 +60,10 @@ function Promise.Reject(...: any): Promise
 end
 
 function Promise._Resolve(self: Promise, ...: any)
-	assert(self.Status == "Pending", "Cannot resolve a promise that is not pending.")
+	assert(
+		self.Status == "Pending",
+		"Cannot resolve a promise that is not pending."
+	)
 
 	self.Status = "Resolved"
 	self.Value = table.pack(...)
@@ -68,7 +76,10 @@ function Promise._Resolve(self: Promise, ...: any)
 end
 
 function Promise._Reject(self: Promise, ...: any)
-	assert(self.Status == "Pending", "Cannot reject a promise that is not pending.")
+	assert(
+		self.Status == "Pending",
+		"Cannot reject a promise that is not pending."
+	)
 
 	self.Status = "Rejected"
 	self.Value = table.pack(...)
@@ -80,9 +91,16 @@ function Promise._Reject(self: Promise, ...: any)
 	task.defer(task.cancel, self.Thread :: thread)
 end
 
-function Promise.Then(self: Promise, OnResolve: ((...any) -> ...any)?, OnReject: ((...any) -> ...any)?): Promise
+function Promise.Then(
+	self: Promise,
+	OnResolve: ((...any) -> ...any)?,
+	OnReject: ((...any) -> ...any)?
+): Promise
 	return Promise.Promise(function(Resolve, Reject)
-		local function PromiseResolutionProcedure(Value: Promise | any, ...: any)
+		local function PromiseResolutionProcedure(
+			Value: Promise | any,
+			...: any
+		)
 			if type(Value) == "table" and getmetatable(Value) == Promise then
 				if Value.Status == "Pending" then
 					table.insert(Value.OnResolve, Resolve)

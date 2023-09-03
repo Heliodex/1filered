@@ -1,14 +1,14 @@
-local Net = require(script.Net)
+local Net = require "./Net"
 
 return {
 	Server = Net.Server,
 	Client = Net.Client,
 
-	Collection = require(script.Util.Collection),
-	Ratelimit = require(script.Util.Ratelimit),
-	Promise = require(script.Util.Promise),
-	Signal = require(script.Util.Signal),
-	Clock = require(script.Util.Clock),
-	Spawn = require(script.Util.Spawn),
-	Bin = require(script.Util.Bin),
+	Collection = require "./Util/Collection",
+	Ratelimit = require "./Util/Ratelimit",
+	Promise = require "./Util/Promise",
+	Signal = require "./Util/Signal",
+	Clock = require "./Util/Clock",
+	Spawn = require "./Util/Spawn",
+	Bin = require "./Util/Bin",
 }

@@ -1,4 +1,4 @@
-local Spawn = require(script.Parent.Spawn)
+local Spawn = require "./Spawn"
 
 type BinItem = Instance | RBXScriptConnection | () -> ...any
 

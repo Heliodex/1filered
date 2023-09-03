@@ -1,14 +1,14 @@
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService "RunService"
+local ReplicatedStorage = game:GetService "ReplicatedStorage"
 
-local Remote = ReplicatedStorage:FindFirstChild("RedEvent") :: RemoteEvent
+local Remote = ReplicatedStorage:FindFirstChild "RedEvent" :: RemoteEvent
 local IS_CLIENT = RunService:IsClient()
 
-local Serdes = require(script.Parent.Serdes)
+local Serdes = require "./Serdes"
 
-local Spawn = require(script.Parent.Parent.Util.Spawn)
-local Promise = require(script.Parent.Parent.Util.Promise)
-local Clock = require(script.Parent.Parent.Util.Clock)
+local Spawn = require "../Util/Spawn"
+local Promise = require "../Util/Promise"
+local Clock = require "../Util/Clock"
 
 local Event = {}
 
@@ -20,38 +20,20 @@ if IS_CLIENT then
 end
 
 function Event.Listen()
-	debug.setmemorycategory("Red.Listen")
+	debug.setmemorycategory "Red.Listen"
 
 	if IS_CLIENT then
-		Remote.OnClientEvent:Connect(function(SingleFire, MultipleFire, IncomingCall)
-			debug.profilebegin("Red.Listen.Incoming")
+		Remote.OnClientEvent:Connect(
+			function(SingleFire, MultipleFire, IncomingCall)
+				debug.profilebegin "Red.Listen.Incoming"
 
-			if SingleFire then
-				debug.profilebegin("Red.Listen.Incoming.SingleFire")
+				if SingleFire then
+					debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
-				for EventId, Call in SingleFire do
-					local Callback = Event.Callbacks[EventId]
+					for EventId, Call in SingleFire do
+						local Callback = Event.Callbacks[EventId]
 
-					if Callback then
-						if type(Call) == "table" then
-							Spawn(Callback, unpack(Call))
-						else
-							Spawn(Callback, Call)
-						end
-					end
-				end
-
-				debug.profileend()
-			end
-
-			if MultipleFire then
-				debug.profilebegin("Red.Listen.Incoming.Fire")
-
-				for EventId, Calls in MultipleFire do
-					local Callback = Event.Callbacks[EventId]
-
-					if Callback then
-						for _, Call in Calls do
+						if Callback then
 							if type(Call) == "table" then
 								Spawn(Callback, unpack(Call))
 							else
@@ -59,37 +41,57 @@ function Event.Listen()
 							end
 						end
 					end
+
+					debug.profileend()
 				end
 
-				debug.profileend()
-			end
+				if MultipleFire then
+					debug.profilebegin "Red.Listen.Incoming.Fire"
 
-			if IncomingCall then
-				debug.profilebegin("Red.Listen.Incoming.Call")
+					for EventId, Calls in MultipleFire do
+						local Callback = Event.Callbacks[EventId]
 
-				for _, Call in IncomingCall do
-					local CallId = table.remove(Call, 1)
-					local Success = table.remove(Call, 1)
-
-					if Event.ActiveCalls[CallId] then
-						if Success then
-							Event.ActiveCalls[CallId].Resolve(unpack(Call))
-						else
-							Event.ActiveCalls[CallId].Reject(unpack(Call))
+						if Callback then
+							for _, Call in Calls do
+								if type(Call) == "table" then
+									Spawn(Callback, unpack(Call))
+								else
+									Spawn(Callback, Call)
+								end
+							end
 						end
-
-						Event.ActiveCalls[CallId] = nil
 					end
+
+					debug.profileend()
+				end
+
+				if IncomingCall then
+					debug.profilebegin "Red.Listen.Incoming.Call"
+
+					for _, Call in IncomingCall do
+						local CallId = table.remove(Call, 1)
+						local Success = table.remove(Call, 1)
+
+						if Event.ActiveCalls[CallId] then
+							if Success then
+								Event.ActiveCalls[CallId].Resolve(unpack(Call))
+							else
+								Event.ActiveCalls[CallId].Reject(unpack(Call))
+							end
+
+							Event.ActiveCalls[CallId] = nil
+						end
+					end
+
+					debug.profileend()
 				end
 
 				debug.profileend()
 			end
-
-			debug.profileend()
-		end)
+		)
 
 		Clock.new(1 / 60, function()
-			debug.profilebegin("Red.Listen.Outgoing")
+			debug.profilebegin "Red.Listen.Outgoing"
 
 			if not next(Event.Outgoing) then
 				return
@@ -109,41 +111,27 @@ function Event.Listen()
 				end
 			end
 
-			Remote:FireServer(if SendSingleFire then SingleFire else nil, Event.Outgoing[1], Event.Outgoing[2])
+			Remote:FireServer(
+				if SendSingleFire then SingleFire else nil,
+				Event.Outgoing[1],
+				Event.Outgoing[2]
+			)
 			table.clear(Event.Outgoing)
 
 			debug.profileend()
 		end)
 	else
-		Remote.OnServerEvent:Connect(function(Player, SingleFire, MultipleFire, IncomingCall)
-			debug.profilebegin("Red.Listen.Incoming")
+		Remote.OnServerEvent:Connect(
+			function(Player, SingleFire, MultipleFire, IncomingCall)
+				debug.profilebegin "Red.Listen.Incoming"
 
-			if SingleFire then
-				debug.profilebegin("Red.Listen.Incoming.SingleFire")
+				if SingleFire then
+					debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
-				for EventId, Call in SingleFire do
-					local Callback = Event.Callbacks[EventId]
+					for EventId, Call in SingleFire do
+						local Callback = Event.Callbacks[EventId]
 
-					if Callback then
-						if type(Call) == "table" then
-							Spawn(Callback, Player, unpack(Call))
-						else
-							Spawn(Callback, Player, Call)
-						end
-					end
-				end
-
-				debug.profileend()
-			end
-
-			if MultipleFire then
-				debug.profilebegin("Red.Listen.Incoming.MultipleFire")
-
-				for EventId, Calls in MultipleFire do
-					local Callback = Event.Callbacks[EventId]
-
-					if Callback then
-						for _, Call in Calls do
+						if Callback then
 							if type(Call) == "table" then
 								Spawn(Callback, Player, unpack(Call))
 							else
@@ -151,59 +139,89 @@ function Event.Listen()
 							end
 						end
 					end
+
+					debug.profileend()
 				end
 
-				debug.profileend()
-			end
+				if MultipleFire then
+					debug.profilebegin "Red.Listen.Incoming.MultipleFire"
 
-			if IncomingCall then
-				debug.profilebegin("Red.Listen.Incoming.Call")
+					for EventId, Calls in MultipleFire do
+						local Callback = Event.Callbacks[EventId]
 
-				for EventId, Calls in IncomingCall do
-					if Event.Callbacks[EventId] then
-						for _, Call in Calls do
-							Spawn(function()
-								local CallId = table.remove(Call, 1)
-								local Result = { CallId, pcall(Event.Callbacks[EventId], Player, unpack(Call)) }
-
-								if Event.Outgoing[Player] == nil then
-									Event.Outgoing[Player] = {}
+						if Callback then
+							for _, Call in Calls do
+								if type(Call) == "table" then
+									Spawn(Callback, Player, unpack(Call))
+								else
+									Spawn(Callback, Player, Call)
 								end
-
-								if Event.Outgoing[Player][2] == nil then
-									Event.Outgoing[Player][2] = {}
-								end
-
-								table.insert(Event.Outgoing[Player][2], Result)
-							end)
-						end
-					else
-						if Event.Outgoing[Player] == nil then
-							Event.Outgoing[Player] = {}
-						end
-
-						if Event.Outgoing[Player][2] == nil then
-							Event.Outgoing[Player][2] = {}
-						end
-
-						for _, Call in Calls do
-							table.insert(Event.Outgoing[Player][2], {
-								Call[1],
-								false,
-								"[RED] Event not found",
-							})
+							end
 						end
 					end
+
+					debug.profileend()
+				end
+
+				if IncomingCall then
+					debug.profilebegin "Red.Listen.Incoming.Call"
+
+					for EventId, Calls in IncomingCall do
+						if Event.Callbacks[EventId] then
+							for _, Call in Calls do
+								Spawn(function()
+									local CallId = table.remove(Call, 1)
+									local Result = {
+										CallId,
+										pcall(
+											Event.Callbacks[EventId],
+											Player,
+											unpack(Call)
+										),
+									}
+
+									if Event.Outgoing[Player] == nil then
+										Event.Outgoing[Player] = {}
+									end
+
+									if Event.Outgoing[Player][2] == nil then
+										Event.Outgoing[Player][2] = {}
+									end
+
+									table.insert(
+										Event.Outgoing[Player][2],
+										Result
+									)
+								end)
+							end
+						else
+							if Event.Outgoing[Player] == nil then
+								Event.Outgoing[Player] = {}
+							end
+
+							if Event.Outgoing[Player][2] == nil then
+								Event.Outgoing[Player][2] = {}
+							end
+
+							for _, Call in Calls do
+								table.insert(Event.Outgoing[Player][2], {
+									Call[1],
+									false,
+									"[RED] Event not found",
+								})
+							end
+						end
+					end
+
+					debug.profileend()
 				end
 
 				debug.profileend()
 			end
-
-			debug.profileend()
-		end)
+		)
 
 		RunService.Heartbeat:Connect(function()
-			debug.profilebegin("Red.Listen.Outgoing")
+			debug.profilebegin "Red.Listen.Outgoing"
 
 			for Player, Packets in Event.Outgoing do
 				local SingleCall = {}
@@ -220,7 +238,12 @@ function Event.Listen()
 					end
 				end
 
-				Remote:FireClient(Player, if SendSingleCall then SingleCall else nil, Packets[1], Packets[2])
+				Remote:FireClient(
+					Player,
+					if SendSingleCall then SingleCall else nil,
+					Packets[1],
+					Packets[2]
+				)
 			end
 
 			table.clear(Event.Outgoing)

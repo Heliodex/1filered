@@ -3,7 +3,7 @@ return function<T>(Limit: number, Interval: number)
 
 	local CountMap = {} :: { [T]: number }
 	local CountKeyless = 0
-	
+
 	return function(Key: T?)
 		if Key then
 			local Count = CountMap[Key]

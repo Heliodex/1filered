@@ -1,9 +1,9 @@
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService "RunService"
+local ReplicatedStorage = game:GetService "ReplicatedStorage"
 
-local Event = ReplicatedStorage:WaitForChild("RedEvent")
+local Event = ReplicatedStorage:WaitForChild "RedEvent"
 
-local Promise = require(script.Parent.Parent.Util.Promise)
+local Promise = require "../Util/Promise"
 
 local Serdes = {}
 
@@ -11,7 +11,10 @@ Serdes.NextId = 0
 Serdes.NextOT = 0
 
 function Serdes.RegisterIdentifier(Name: string)
-	assert(RunService:IsServer(), "RegisterIdentifier can only be called on the server")
+	assert(
+		RunService:IsServer(),
+		"RegisterIdentifier can only be called on the server"
+	)
 
 	local Id = utf8.char(Serdes.NextId)
 	Serdes.NextId += 1

@@ -1,5 +1,5 @@
-local Promise = require(script.Parent.Promise)
-local Spawn = require(script.Parent.Spawn)
+local Promise = require "./Promise"
+local Spawn = require "./Spawn"
 
 type SignalNode<T...> = {
 	Next: SignalNode<T...>?,

@@ -1,21 +1,21 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService "ReplicatedStorage"
+local Players = game:GetService "Players"
+local RunService = game:GetService "RunService"
 
 local Remote
 local ClientFolder
 if RunService:IsServer() then
-	Remote = Instance.new("RemoteEvent")
+	Remote = Instance.new "RemoteEvent"
 	Remote.Name = "RedEvent"
 	Remote.Parent = ReplicatedStorage
 
 	local function PlayerAdded(Player: Player)
-		local ClientFolder = Instance.new("ScreenGui")
+		local ClientFolder = Instance.new "ScreenGui"
 
 		ClientFolder.Enabled = false
 		ClientFolder.ResetOnSpawn = false
 		ClientFolder.Name = "Red"
-		ClientFolder.Parent = Player:FindFirstChild("PlayerGui")
+		ClientFolder.Parent = Player:FindFirstChild "PlayerGui"
 	end
 
 	Players.PlayerAdded:Connect(PlayerAdded)
@@ -24,14 +24,16 @@ if RunService:IsServer() then
 		PlayerAdded(Player)
 	end
 else
-	Remote = ReplicatedStorage:WaitForChild("RedEvent") :: RemoteEvent
+	Remote = ReplicatedStorage:WaitForChild "RedEvent" :: RemoteEvent
 
-	ClientFolder = (Players.LocalPlayer:FindFirstChild("PlayerGui") :: PlayerGui):WaitForChild("Red") :: ScreenGui
+	ClientFolder = (
+		Players.LocalPlayer:FindFirstChild "PlayerGui" :: PlayerGui
+	):WaitForChild "Red" :: ScreenGui
 	ClientFolder.Parent = nil
 end
 
-local Serdes = require(script.Serdes)
-local Event = require(script.Event)
+local Serdes = require "./Serdes"
+local Event = require "./Event"
 
 local Server = {}
 Server.__index = Server
@@ -57,7 +59,12 @@ function Server.FireAll(self: Server, EventName: string, ...)
 	end
 end
 
-function Server.FireAllExcept(self: Server, Player: Player, EventName: string, ...)
+function Server.FireAllExcept(
+	self: Server,
+	Player: Player,
+	EventName: string,
+	...
+)
 	for _, OtherPlayer in Players:GetPlayers() do
 		if OtherPlayer ~= Player then
 			self:Fire(OtherPlayer, EventName, ...)
@@ -65,13 +72,23 @@ function Server.FireAllExcept(self: Server, Player: Player, EventName: string, .
 	end
 end
 
-function Server.FireList(self: Server, PlayerList: { Player }, EventName: string, ...)
+function Server.FireList(
+	self: Server,
+	PlayerList: { Player },
+	EventName: string,
+	...
+)
 	for _, Player in PlayerList do
 		self:Fire(Player, EventName, ...)
 	end
 end
 
-function Server.FireWithFilter(self: Server, Filter: (Player) -> boolean, EventName: string, ...)
+function Server.FireWithFilter(
+	self: Server,
+	Filter: (Player) -> boolean,
+	EventName: string,
+	...
+)
 	for _, Player in Players:GetPlayers() do
 		if Filter(Player) then
 			self:Fire(Player, EventName, ...)
@@ -79,18 +96,24 @@ function Server.FireWithFilter(self: Server, Filter: (Player) -> boolean, EventN
 	end
 end
 
-function Server.On(self: Server, EventName: string, Callback: ((Player, ...any) -> ...any)?)
+function Server.On(
+	self: Server,
+	EventName: string,
+	Callback: ((Player, ...any) -> ...any)?
+)
 	Event.SetCallback(self.Name .. "_" .. EventName, Callback)
 end
 
 function Server.Folder(self: Server, Player: Player?)
 	if Player then
-		local ClientFolder = (Player:FindFirstChild("PlayerGui") :: any).Red :: ScreenGui
+		local ClientFolder = (
+			Player:FindFirstChild "PlayerGui" :: any
+		).Red :: ScreenGui
 
 		if ClientFolder:FindFirstChild(self.Name) then
 			return ClientFolder:FindFirstChild(self.Name) :: Folder
 		else
-			local Folder = Instance.new("Folder")
+			local Folder = Instance.new "Folder"
 			Folder.Name = self.Name
 			Folder.Parent = ClientFolder
 
@@ -98,7 +121,7 @@ function Server.Folder(self: Server, Player: Player?)
 		end
 	else
 		if not self.FolderInstance then
-			local Folder = Instance.new("Folder")
+			local Folder = Instance.new "Folder"
 			Folder.Name = self.Name
 			Folder.Parent = Remote
 
@@ -148,7 +171,8 @@ end
 
 function Client.LocalFolder(self: Client)
 	if not self.LocalFolderInstance then
-		self.LocalFolderInstance = ClientFolder:WaitForChild(self.Name) :: Folder
+		self.LocalFolderInstance =
+			ClientFolder:WaitForChild(self.Name) :: Folder
 	end
 
 	return self.LocalFolderInstance :: Folder
@@ -179,7 +203,7 @@ end
 
 function Net.Client(Name: string): Client
 	assert(RunService:IsClient(), "Net.Client can only be used on the client")
-	
+
 	if Net.ClientNamespaceList[Name] == nil then
 		Net.ClientNamespaceList[Name] = Client.Client(Name)
 	end
