@@ -1,10 +1,6 @@
-local RunService = game:GetService "RunService"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
-
 local Event = ReplicatedStorage:FindFirstChild "RedEvent"
-
 local Promise = require "../Util/Promise"
-
 local Serdes = {}
 
 Serdes.NextId = 0
@@ -12,7 +8,7 @@ Serdes.NextOT = 0
 
 function Serdes.RegisterIdentifier(Name: string)
 	assert(
-		RunService:IsServer(),
+		_SERVER,
 		"RegisterIdentifier can only be called on the server"
 	)
 
@@ -29,7 +25,7 @@ function Serdes.Identifier(Name: string)
 		Event = ReplicatedStorage:WaitForChild "RedEvent"
 	end
 
-	if RunService:IsClient() then
+	if _CLIENT then
 		return Promise.new(function(Resolve)
 			if Event:GetAttribute(Name) ~= nil then
 				Resolve(Event:GetAttribute(Name))
@@ -52,9 +48,8 @@ function Serdes.Identifier(Name: string)
 	else
 		if Event:GetAttribute(Name) then
 			return Promise.Resolve(Event:GetAttribute(Name))
-		else
-			return Promise.Resolve(Serdes.RegisterIdentifier(Name))
 		end
+		return Promise.Resolve(Serdes.RegisterIdentifier(Name))
 	end
 end
 

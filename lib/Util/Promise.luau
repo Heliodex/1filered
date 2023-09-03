@@ -166,24 +166,23 @@ function Promise.Await(self: Promise): ...any
 		return unpack(self.Value)
 	elseif self.Status == "Rejected" then
 		return error(unpack(self.Value))
-	else
-		local Current = coroutine.running()
-
-		local function Resume()
-			coroutine.resume(Current)
-		end
-
-		table.insert(self.OnResolve, Resume)
-		table.insert(self.OnReject, Resume)
-
-		coroutine.yield()
-
-		if self.Status == "Resolved" then
-			return unpack(self.Value)
-		else
-			return error(unpack(self.Value))
-		end
 	end
+
+	local Current = coroutine.running()
+
+	local function Resume()
+		coroutine.resume(Current)
+	end
+
+	table.insert(self.OnResolve, Resume)
+	table.insert(self.OnReject, Resume)
+
+	coroutine.yield()
+
+	if self.Status == "Resolved" then
+		return unpack(self.Value)
+	end
+	return error(unpack(self.Value))
 end
 
 export type Promise = typeof(Promise.Promise(...))

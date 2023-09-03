@@ -1,10 +1,9 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local Players = game:GetService "Players"
-local RunService = game:GetService "RunService"
 
 local Remote
 local ClientFolder
-if RunService:IsServer() then
+if _SERVER then
 	Remote = Instance.new "RemoteEvent"
 	Remote.Name = "RedEvent"
 	Remote.Parent = ReplicatedStorage
@@ -113,7 +112,7 @@ function Server.Folder(self: Server, Player: Player?)
 		if ClientFolder:FindFirstChild(self.Name) then
 			return ClientFolder:FindFirstChild(self.Name) :: Folder
 		else
-			local Folder = Instance.new "Folder"
+			local Folder = Instance.new "Model"
 			Folder.Name = self.Name
 			Folder.Parent = ClientFolder
 
@@ -121,7 +120,7 @@ function Server.Folder(self: Server, Player: Player?)
 		end
 	else
 		if not self.FolderInstance then
-			local Folder = Instance.new "Folder"
+			local Folder = Instance.new "Model"
 			Folder.Name = self.Name
 			Folder.Parent = Remote
 
@@ -186,7 +185,7 @@ Net.ServerNamespaceList = {}
 Net.ClientNamespaceList = {}
 
 function Net.Server(Name: string, Definitions: { string }?): Server
-	assert(RunService:IsServer(), "Net.Server can only be used on the server")
+	assert(_SERVER, "Net.Server can only be used on the server")
 
 	if not Net.ServerNamespaceList[Name] then
 		Net.ServerNamespaceList[Name] = Server.Server(Name)
@@ -202,7 +201,7 @@ function Net.Server(Name: string, Definitions: { string }?): Server
 end
 
 function Net.Client(Name: string): Client
-	assert(RunService:IsClient(), "Net.Client can only be used on the client")
+	assert(_CLIENT, "Net.Client can only be used on the client")
 
 	if Net.ClientNamespaceList[Name] == nil then
 		Net.ClientNamespaceList[Name] = Client.Client(Name)

@@ -2,7 +2,6 @@ local RunService = game:GetService "RunService"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 
 local Remote = ReplicatedStorage:FindFirstChild "RedEvent" :: RemoteEvent
-local IS_CLIENT = RunService:IsClient()
 
 local Serdes = require "./Serdes"
 
@@ -15,7 +14,7 @@ local Event = {}
 Event.Callbacks = {} :: { [string]: ((...any) -> ...any)? }
 Event.Outgoing = {} :: any
 
-if IS_CLIENT then
+if _CLIENT then
 	Event.ActiveCalls = {}
 end
 
@@ -26,7 +25,7 @@ function Event.Listen()
 		Remote = ReplicatedStorage:WaitForChild "RedEvent"
 	end
 
-	if IS_CLIENT then
+	if _CLIENT then
 		Remote.OnClientEvent:Connect(
 			function(SingleFire, MultipleFire, IncomingCall)
 				debug.profilebegin "Red.Listen.Incoming"
@@ -116,7 +115,12 @@ function Event.Listen()
 			end
 
 			Remote:FireServer(
-				if SendSingleFire then SingleFire else nil,
+				(function()
+					if SendSingleFire then
+						return SingleFire
+					end
+					return nil
+				end)(),
 				Event.Outgoing[1],
 				Event.Outgoing[2]
 			)
@@ -244,7 +248,12 @@ function Event.Listen()
 
 				Remote:FireClient(
 					Player,
-					if SendSingleCall then SingleCall else nil,
+					(function()
+						if SendSingleCall then
+							return SingleCall
+						end
+						return nil
+					end)(),
 					Packets[1],
 					Packets[2]
 				)
@@ -274,7 +283,7 @@ function Event.AddQueue(Queue: { any }, Call: { any })
 end
 
 function Event.FireClient(Player: Player, EventName: string, ...)
-	assert(not IS_CLIENT, "Event.FireClient can only be called from the server")
+	assert(not _CLIENT, "Event.FireClient can only be called from the server")
 
 	local EventId = Serdes.IdentifierAsync(EventName)
 
@@ -294,7 +303,7 @@ function Event.FireClient(Player: Player, EventName: string, ...)
 end
 
 function Event.FireServer(EventName: string, ...)
-	assert(IS_CLIENT, "Event.FireServer can only be called on the client")
+	assert(_CLIENT, "Event.FireServer can only be called on the client")
 
 	local Args = { ... }
 
@@ -312,7 +321,7 @@ function Event.FireServer(EventName: string, ...)
 end
 
 function Event.Call(EventName: string, ...)
-	assert(IS_CLIENT, "Event.Call can only be called on the client")
+	assert(_CLIENT, "Event.Call can only be called on the client")
 
 	local Args = { ... }
 

@@ -24,6 +24,10 @@ globals:
     args: []
   _CHAR_APPEARANCE:
     args: []
+  _SERVER:
+    args: []
+  _CLIENT:
+    args: []
 
   assert:
     args:
