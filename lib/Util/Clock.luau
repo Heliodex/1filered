@@ -17,7 +17,7 @@ function Clock.Clock(Interval: number, Callback: () -> ())
 	self.Callback = Callback
 	self.Delta = 0
 
-	self.Connection = RunService.Heartbeat:Connect(MakeHeartbeatFunction(self))
+	self.Connection = RunService.Heartbeat:connect(MakeHeartbeatFunction(self))
 
 	return self
 end
@@ -35,7 +35,7 @@ function Clock.Resume(self: Clock)
 		return
 	end
 
-	self.Connection = RunService.Heartbeat:Connect(MakeHeartbeatFunction(self))
+	self.Connection = RunService.Heartbeat:connect(MakeHeartbeatFunction(self))
 end
 
 function Clock.Advance(self: Clock, Delta: number)

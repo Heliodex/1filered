@@ -16,12 +16,12 @@ return function<T...>(
 	end
 
 	local AddConnection = CollectionService:GetInstanceAddedSignal(Tag)
-		:Connect(function(Instance)
+		:connect(function(Instance)
 			InstanceMap[Instance] = { Start(Instance) }
 		end)
 
 	local RemoveConnection = CollectionService:GetInstanceRemovedSignal(Tag)
-		:Connect(function(Instance)
+		:connect(function(Instance)
 			local Value = InstanceMap[Instance]
 
 			if Value then

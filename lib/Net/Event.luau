@@ -19,19 +19,19 @@ if _CLIENT then
 end
 
 function Event.Listen()
-	debug.setmemorycategory "Red.Listen"
+	-- debug.setmemorycategory "Red.Listen"
 
 	if not Remote then
 		Remote = ReplicatedStorage:WaitForChild "RedEvent"
 	end
 
 	if _CLIENT then
-		Remote.OnClientEvent:Connect(
+		Remote.OnClientEvent:connect(
 			function(SingleFire, MultipleFire, IncomingCall)
-				debug.profilebegin "Red.Listen.Incoming"
+				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
-					debug.profilebegin "Red.Listen.Incoming.SingleFire"
+					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
 					for EventId, Call in SingleFire do
 						local Callback = Event.Callbacks[EventId]
@@ -45,11 +45,11 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
 				if MultipleFire then
-					debug.profilebegin "Red.Listen.Incoming.Fire"
+					-- debug.profilebegin "Red.Listen.Incoming.Fire"
 
 					for EventId, Calls in MultipleFire do
 						local Callback = Event.Callbacks[EventId]
@@ -65,11 +65,11 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
 				if IncomingCall then
-					debug.profilebegin "Red.Listen.Incoming.Call"
+					-- debug.profilebegin "Red.Listen.Incoming.Call"
 
 					for _, Call in IncomingCall do
 						local CallId = table.remove(Call, 1)
@@ -86,15 +86,15 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
-				debug.profileend()
+				-- debug.profileend()
 			end
 		)
 
 		Clock.new(1 / 60, function()
-			debug.profilebegin "Red.Listen.Outgoing"
+			-- debug.profilebegin "Red.Listen.Outgoing"
 
 			if not next(Event.Outgoing) then
 				return
@@ -126,15 +126,15 @@ function Event.Listen()
 			)
 			table.clear(Event.Outgoing)
 
-			debug.profileend()
+			-- debug.profileend()
 		end)
 	else
-		Remote.OnServerEvent:Connect(
+		Remote.OnServerEvent:connect(
 			function(Player, SingleFire, MultipleFire, IncomingCall)
-				debug.profilebegin "Red.Listen.Incoming"
+				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
-					debug.profilebegin "Red.Listen.Incoming.SingleFire"
+					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
 					for EventId, Call in SingleFire do
 						local Callback = Event.Callbacks[EventId]
@@ -148,11 +148,11 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
 				if MultipleFire then
-					debug.profilebegin "Red.Listen.Incoming.MultipleFire"
+					-- debug.profilebegin "Red.Listen.Incoming.MultipleFire"
 
 					for EventId, Calls in MultipleFire do
 						local Callback = Event.Callbacks[EventId]
@@ -168,11 +168,11 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
 				if IncomingCall then
-					debug.profilebegin "Red.Listen.Incoming.Call"
+					-- debug.profilebegin "Red.Listen.Incoming.Call"
 
 					for EventId, Calls in IncomingCall do
 						if Event.Callbacks[EventId] then
@@ -221,15 +221,15 @@ function Event.Listen()
 						end
 					end
 
-					debug.profileend()
+					-- debug.profileend()
 				end
 
-				debug.profileend()
+				-- debug.profileend()
 			end
 		)
 
-		RunService.Heartbeat:Connect(function()
-			debug.profilebegin "Red.Listen.Outgoing"
+		RunService.Heartbeat:connect(function()
+			-- debug.profilebegin "Red.Listen.Outgoing"
 
 			for Player, Packets in Event.Outgoing do
 				local SingleCall = {}
@@ -261,7 +261,7 @@ function Event.Listen()
 
 			table.clear(Event.Outgoing)
 
-			debug.profileend()
+			-- debug.profileend()
 		end)
 	end
 end

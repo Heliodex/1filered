@@ -7033,7 +7033,6 @@ structs:
             - UserStorageService
             - LocalizationService
             - LodDataService
-            - LogService
             - LoginService
             - LuaWebService
             - LuauScriptAnalyzerService
@@ -7462,13 +7461,6 @@ structs:
     Value:
       property: read-only
   Event:
-    Connect:
-      args:
-        - type: function
-      method: true
-    Wait:
-      args: []
-      method: true
     connect:
       args:
         - type: function

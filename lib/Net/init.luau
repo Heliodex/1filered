@@ -11,15 +11,15 @@ if _SERVER then
 	local function PlayerAdded(Player: Player)
 		ClientFolder = Instance.new "ScreenGui"
 
-		ClientFolder.Enabled = false
-		ClientFolder.ResetOnSpawn = false
+		-- ClientFolder.Enabled = false
+		-- ClientFolder.ResetOnSpawn = false
 		ClientFolder.Name = "Red"
 		ClientFolder.Parent = Player:FindFirstChild "PlayerGui"
 	end
 
-	Players.PlayerAdded:Connect(PlayerAdded)
+	Players.PlayerAdded:connect(PlayerAdded)
 
-	for _, Player in Players:GetPlayers() do
+	for _, Player in ipairs(Players:GetPlayers()) do
 		PlayerAdded(Player)
 	end
 else
@@ -53,7 +53,7 @@ function Server.Fire(self: Server, Player: Player, EventName: string, ...)
 end
 
 function Server.FireAll(self: Server, EventName: string, ...)
-	for _, Player in Players:GetPlayers() do
+	for _, Player in ipairs(Players:GetPlayers()) do
 		self:Fire(Player, EventName, ...)
 	end
 end
@@ -64,7 +64,7 @@ function Server.FireAllExcept(
 	EventName: string,
 	...
 )
-	for _, OtherPlayer in Players:GetPlayers() do
+	for _, OtherPlayer in ipairs(Players:GetPlayers()) do
 		if OtherPlayer ~= Player then
 			self:Fire(OtherPlayer, EventName, ...)
 		end
@@ -88,7 +88,7 @@ function Server.FireWithFilter(
 	EventName: string,
 	...
 )
-	for _, Player in Players:GetPlayers() do
+	for _, Player in ipairs(Players:GetPlayers()) do
 		if Filter(Player) then
 			self:Fire(Player, EventName, ...)
 		end
@@ -105,9 +105,7 @@ end
 
 function Server.Folder(self: Server, Player: Player?)
 	if Player then
-		ClientFolder = (
-			Player:FindFirstChild "PlayerGui" :: any
-		).Red :: ScreenGui
+		ClientFolder = (Player:FindFirstChild "PlayerGui" :: any).Red :: ScreenGui
 
 		if ClientFolder:FindFirstChild(self.Name) then
 			return ClientFolder:FindFirstChild(self.Name) :: Folder

@@ -1,4 +1,4 @@
-local Spawn = require "./Spawn"
+local Spawn2 = require "./Spawn"
 
 local Promise = {}
 Promise.__index = Promise
@@ -26,7 +26,7 @@ function Promise.Promise(Callback: (
 		end)
 	end)
 
-	task.spawn(self.Thread :: thread)
+	coroutine.resume(self.Thread :: thread)
 
 	return self
 end
@@ -69,7 +69,7 @@ function Promise._Resolve(self: Promise, ...: any)
 	self.Value = table.pack(...)
 
 	for _, Callback in self.OnResolve do
-		Spawn(Callback, ...)
+		Spawn2(Callback, ...)
 	end
 
 	task.defer(task.cancel, self.Thread :: thread)
@@ -85,7 +85,7 @@ function Promise._Reject(self: Promise, ...: any)
 	self.Value = table.pack(...)
 
 	for _, Callback in self.OnReject do
-		Spawn(Callback, ...)
+		Spawn2(Callback, ...)
 	end
 
 	task.defer(task.cancel, self.Thread :: thread)

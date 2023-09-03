@@ -19,5 +19,5 @@ return function<T...>(fn: (T...) -> (), ...: T...)
 		coroutine.resume(FreeThread :: any)
 	end
 
-	task.spawn(FreeThread :: thread, fn, ...)
+	coroutine.resume(FreeThread :: thread, fn, ...)
 end
