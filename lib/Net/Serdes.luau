@@ -1,7 +1,7 @@
 local RunService = game:GetService "RunService"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 
-local Event = ReplicatedStorage:WaitForChild "RedEvent"
+local Event = ReplicatedStorage:FindFirstChild "RedEvent"
 
 local Promise = require "../Util/Promise"
 
@@ -25,6 +25,10 @@ function Serdes.RegisterIdentifier(Name: string)
 end
 
 function Serdes.Identifier(Name: string)
+	if not Event then
+		Event = ReplicatedStorage:WaitForChild "RedEvent"
+	end
+
 	if RunService:IsClient() then
 		return Promise.new(function(Resolve)
 			if Event:GetAttribute(Name) ~= nil then
@@ -33,7 +37,9 @@ function Serdes.Identifier(Name: string)
 				local Thread = task.delay(
 					5,
 					warn,
-					`[Red.Serdes]: Retrieving identifier exceeded 5 seconds. Make sure '{Name}' is registered on the server.`
+					"[Red.Serdes]: Retrieving identifier exceeded 5 seconds. Make sure '"
+						.. Name
+						.. "' is registered on the server."
 				)
 
 				Event:GetAttributeChangedSignal(Name):Once(function()

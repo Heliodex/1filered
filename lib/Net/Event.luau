@@ -8,7 +8,7 @@ local Serdes = require "./Serdes"
 
 local Spawn = require "../Util/Spawn"
 local Promise = require "../Util/Promise"
-local Clock = require "../Util/Clock"
+local Clock = require "../Util/Clock2"
 
 local Event = {}
 
@@ -21,6 +21,10 @@ end
 
 function Event.Listen()
 	debug.setmemorycategory "Red.Listen"
+
+	if not Remote then
+		Remote = ReplicatedStorage:WaitForChild "RedEvent"
+	end
 
 	if IS_CLIENT then
 		Remote.OnClientEvent:Connect(

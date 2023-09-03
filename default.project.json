@@ -1,0 +1,26 @@
+{
+	"name": "Red",
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"Red": {
+				"$path": "Red.lua"
+			}
+		},
+
+		"ServerScriptService": {
+			"Server": {
+				"$path": "server"
+			}
+		},
+
+		"StarterPlayer": {
+			"StarterPlayerScripts": {
+				"Client": {
+					"$path": "client"
+				}
+			}
+		}
+	}
+}

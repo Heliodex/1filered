@@ -10,7 +10,7 @@ if RunService:IsServer() then
 	Remote.Parent = ReplicatedStorage
 
 	local function PlayerAdded(Player: Player)
-		local ClientFolder = Instance.new "ScreenGui"
+		ClientFolder = Instance.new "ScreenGui"
 
 		ClientFolder.Enabled = false
 		ClientFolder.ResetOnSpawn = false
@@ -106,7 +106,7 @@ end
 
 function Server.Folder(self: Server, Player: Player?)
 	if Player then
-		local ClientFolder = (
+		ClientFolder = (
 			Player:FindFirstChild "PlayerGui" :: any
 		).Red :: ScreenGui
 
