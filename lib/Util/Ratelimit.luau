@@ -11,7 +11,7 @@ return function<T>(Limit: number, Interval: number)
 			if Count == nil then
 				Count = 0
 
-				task.delay(Interval, function()
+				Delay(Interval, function()
 					CountMap[Key] = nil
 				end)
 			end
@@ -23,7 +23,7 @@ return function<T>(Limit: number, Interval: number)
 			CountMap[Key] = Count + 1
 		else
 			if CountKeyless == 0 then
-				task.delay(Interval, function()
+				Delay(Interval, function()
 					CountKeyless = 0
 				end)
 			end

@@ -1,4 +1,4 @@
-local Spawn2 = require "./Spawn"
+local Spawn = require "./Spawn"
 
 local Promise = {}
 Promise.__index = Promise
@@ -17,13 +17,16 @@ function Promise.Promise(Callback: (
 
 	self.Thread = nil :: thread?
 	self.Thread = coroutine.create(function()
-		xpcall(Callback, function(Error)
-			(self :: any):_Reject(Error)
+		local ok, err = ypcall(Callback, function(...)
+			self:_Resolve(...)
 		end, function(...)
-			(self :: any):_Resolve(...)
-		end, function(...)
-			(self :: any):_Reject(...)
+			self:_Reject(...)
 		end)
+
+		if not ok then
+			print("Rejection with", err)
+			self:_Reject(err)
+		end
 	end)
 
 	coroutine.resume(self.Thread :: thread)
@@ -64,15 +67,19 @@ function Promise._Resolve(self: Promise, ...: any)
 		self.Status == "Pending",
 		"Cannot resolve a promise that is not pending."
 	)
+	print "_RESOLVED promise!!"
 
 	self.Status = "Resolved"
-	self.Value = table.pack(...)
+	self.Value = { ... }
 
-	for _, Callback in self.OnResolve do
-		Spawn2(Callback, ...)
+	for _, Callback in ipairs(self.OnResolve) do
+		Spawn(Callback, ...)
 	end
 
-	task.defer(task.cancel, self.Thread :: thread)
+	-- task.defer(task.cancel, self.Thread :: thread)
+	Delay(0, function()
+		coroutine.yield(self.Thread :: thread)
+	end)
 end
 
 function Promise._Reject(self: Promise, ...: any)
@@ -80,15 +87,19 @@ function Promise._Reject(self: Promise, ...: any)
 		self.Status == "Pending",
 		"Cannot reject a promise that is not pending."
 	)
+	print "_REJECTING promise"
 
 	self.Status = "Rejected"
-	self.Value = table.pack(...)
+	self.Value = { ... }
 
-	for _, Callback in self.OnReject do
-		Spawn2(Callback, ...)
+	for _, Callback in ipairs(self.OnReject) do
+		Spawn(Callback, ...)
 	end
 
-	task.defer(task.cancel, self.Thread :: thread)
+	-- task.defer(task.cancel, self.Thread :: thread)
+	Delay(0, function()
+		coroutine.yield(self.Thread :: thread)
+	end)
 end
 
 function Promise.Then(
@@ -97,10 +108,12 @@ function Promise.Then(
 	OnReject: ((...any) -> ...any)?
 ): Promise
 	return Promise.Promise(function(Resolve, Reject)
+		print "starting then"
 		local function PromiseResolutionProcedure(
 			Value: Promise | any,
 			...: any
 		)
+			print "resolution procedure"
 			if type(Value) == "table" and getmetatable(Value) == Promise then
 				if Value.Status == "Pending" then
 					table.insert(Value.OnResolve, Resolve)

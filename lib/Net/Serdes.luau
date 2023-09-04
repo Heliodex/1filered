@@ -13,15 +13,15 @@ function Serdes.RegisterIdentifier(Name: string)
 
 	local e = Event:FindFirstChild(Name)
 	if e then
+		print "[event exists, updatin']"
 		e.Value = Id
 	else
+		print "[event no exists, creatin']"
 		e = Instance.new "StringValue"
 		e.Name = Name
 		e.Value = Id
 		e.Parent = Event
 	end
-
-	print("-- registered identifier ", Name, "as", Id)
 
 	return Id
 end
@@ -35,24 +35,24 @@ function Serdes.Identifier(Name: string)
 
 	local e
 	if _CLIENT then
+		print "new promise for client"
 		return Promise.new(function(Resolve)
-			e = Event:FindFirstChild(Name)
-			local a = e.Value
-			print("-- Client resolving", a)
-			if a ~= nil then
-				Resolve(a)
+			print "waiting for child"
+			e = Event:WaitForChild(Name)
+			print "omg finaly"
+			if e.Value ~= nil then
+				Resolve(e.Value)
 			else
-				local Thread = task.delay(
-					5,
-					warn,
-					"[Red.Serdes]: Retrieving identifier exceeded 5 seconds. Make sure '"
-						.. Name
-						.. "' is registered on the server."
-				)
+				local Thread = Delay(5, function()
+					warn(
+						"[Red.Serdes]: Retrieving identifier exceeded 5 seconds. Make sure '"
+							.. Name
+							.. "' is registered on the server."
+					)
+				end)
 
 				e.Changed:Once(function()
-					print "-- closing thread"
-					coroutine.close(Thread)
+					coroutine.yield(Thread :: thread)
 
 					Resolve(e.Value)
 				end)
@@ -60,11 +60,12 @@ function Serdes.Identifier(Name: string)
 		end)
 	else
 		e = Event:FindFirstChild(Name)
+		print "promise resolution for server"
 		if e and e.Value then
-			print("-- Server resolving", e.Value)
 			return Promise.Resolve(e.Value)
 		end
-		return Promise.Resolve((Serdes.RegisterIdentifier(Name)))
+		print "WHO UP registering they identifier"
+		return Promise.Resolve(Serdes.RegisterIdentifier(Name))
 	end
 end
 

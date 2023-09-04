@@ -28,6 +28,7 @@ function Event.Listen()
 	if _CLIENT then
 		Remote.OnClientEvent:connect(
 			function(SingleFire, MultipleFire, IncomingCall)
+				print "event received from server"
 				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
@@ -116,6 +117,7 @@ function Event.Listen()
 
 			Remote:FireServer(
 				(function()
+					print "sending event to server"
 					if SendSingleFire then
 						return SingleFire
 					end
@@ -131,6 +133,7 @@ function Event.Listen()
 	else
 		Remote.OnServerEvent:connect(
 			function(Player, SingleFire, MultipleFire, IncomingCall)
+				print "event received from client"
 				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
@@ -249,6 +252,7 @@ function Event.Listen()
 				Remote:FireClient(
 					Player,
 					(function()
+						print "sending event to client"
 						if SendSingleCall then
 							return SingleCall
 						end
@@ -287,6 +291,8 @@ function Event.FireClient(Player: Player, EventName: string, ...)
 
 	local EventId = Serdes.IdentifierAsync(EventName)
 
+	print "queueing event to client"
+
 	if Event.Outgoing[Player] == nil then
 		Event.Outgoing[Player] = {}
 	end
@@ -300,6 +306,7 @@ function Event.FireClient(Player: Player, EventName: string, ...)
 	end
 
 	Event.AddQueue(Event.Outgoing[Player][1][EventId], { ... })
+	print "event to client queued"
 end
 
 function Event.FireServer(EventName: string, ...)
@@ -307,7 +314,10 @@ function Event.FireServer(EventName: string, ...)
 
 	local Args = { ... }
 
+	print "queueing event to server"
+
 	return Serdes.Identifier(EventName):Then(function(EventId)
+		print "THEN callback called"
 		if Event.Outgoing[1] == nil then
 			Event.Outgoing[1] = {}
 		end
@@ -317,6 +327,7 @@ function Event.FireServer(EventName: string, ...)
 		end
 
 		Event.AddQueue(Event.Outgoing[1][EventId], Args)
+		print "event to server queued"
 	end)
 end
 

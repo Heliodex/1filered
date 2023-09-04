@@ -3,13 +3,14 @@ local Red = require(ReplicatedStorage.Red)(script)
 
 local Net = Red.Client "NamespaceName"
 
-Net:On("EventName", function(...)
-	print("Received from server:", ...)
+Net:On("EventName", function(i)
+	print("Received from server:", i)
 
-	Net:Fire("EventName", "Guess who's back?")
-	print("Sent back to server:", "Guess who's back?")
+	if i < 4 then
+		Net:Fire("EventName", i + 1)
+	end
 end)
 
 -- We first pass the event name, then the data to fire with
-Net:Fire("EventName", "Hello, world!")
-print("Sent to server:", "Hello, world!", "bruh 2")
+Net:Fire("EventName", 0)
+print "Sent initial event"

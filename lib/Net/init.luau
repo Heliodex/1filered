@@ -49,6 +49,7 @@ end
 Server.new = Server.Server
 
 function Server.Fire(self: Server, Player: Player, EventName: string, ...)
+	print "initiating event to client"
 	Event.FireClient(Player, self.Name .. "_" .. EventName, ...)
 end
 
@@ -147,6 +148,7 @@ end
 Client.new = Client.Client
 
 function Client.Fire(self: Client, EventName: string, ...)
+	print "initiating event to server"
 	return Event.FireServer(self.Name .. "_" .. EventName, ...)
 end
 
