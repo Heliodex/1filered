@@ -3,32 +3,44 @@ local Event = ReplicatedStorage:FindFirstChild "RedEvent"
 local Promise = require "../Util/Promise"
 local Serdes = {}
 
-Serdes.NextId = 0
-Serdes.NextOT = 0
+Serdes.NextId = 1 -- StringValues think null bytes are empty strings
 
 function Serdes.RegisterIdentifier(Name: string)
-	assert(
-		_SERVER,
-		"RegisterIdentifier can only be called on the server"
-	)
+	assert(_SERVER, "RegisterIdentifier can only be called on the server")
 
-	local Id = utf8.char(Serdes.NextId)
+	local Id = string.char(Serdes.NextId)
 	Serdes.NextId += 1
 
-	Event:SetAttribute(Name, Id)
+	local e = Event:FindFirstChild(Name)
+	if e then
+		e.Value = Id
+	else
+		e = Instance.new "StringValue"
+		e.Name = Name
+		e.Value = Id
+		e.Parent = Event
+	end
+
+	print("-- registered identifier ", Name, "as", Id)
 
 	return Id
 end
 
 function Serdes.Identifier(Name: string)
 	if not Event then
+		-- Prevent infinite yield when darklua bundling
+		-- randomises the order of requires
 		Event = ReplicatedStorage:WaitForChild "RedEvent"
 	end
 
+	local e
 	if _CLIENT then
 		return Promise.new(function(Resolve)
-			if Event:GetAttribute(Name) ~= nil then
-				Resolve(Event:GetAttribute(Name))
+			e = Event:FindFirstChild(Name)
+			local a = e.Value
+			print("-- Client resolving", a)
+			if a ~= nil then
+				Resolve(a)
 			else
 				local Thread = task.delay(
 					5,
@@ -38,33 +50,26 @@ function Serdes.Identifier(Name: string)
 						.. "' is registered on the server."
 				)
 
-				Event:GetAttributeChangedSignal(Name):Once(function()
-					task.cancel(Thread)
+				e.Changed:Once(function()
+					print "-- closing thread"
+					coroutine.close(Thread)
 
-					Resolve(Event:GetAttribute(Name))
+					Resolve(e.Value)
 				end)
 			end
 		end)
 	else
-		if Event:GetAttribute(Name) then
-			return Promise.Resolve(Event:GetAttribute(Name))
+		e = Event:FindFirstChild(Name)
+		if e and e.Value then
+			print("-- Server resolving", e.Value)
+			return Promise.Resolve(e.Value)
 		end
-		return Promise.Resolve(Serdes.RegisterIdentifier(Name))
+		return Promise.Resolve((Serdes.RegisterIdentifier(Name)))
 	end
 end
 
 function Serdes.IdentifierAsync(Name: string)
 	return Serdes.Identifier(Name):Await()
-end
-
-function Serdes.OneTime()
-	Serdes.NextOT += 1
-
-	if Serdes.NextOT == 0xFFFF + 1 then
-		Serdes.NextOT = 0
-	end
-
-	return utf8.char(Serdes.NextOT)
 end
 
 return Serdes

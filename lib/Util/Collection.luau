@@ -25,8 +25,8 @@ return function<T...>(
 			local Value = InstanceMap[Instance]
 
 			if Value then
-				InstanceMap[Instance] = nil;
-				(Stop :: any)(unpack(Value))
+				InstanceMap[Instance] = nil
+				Stop(unpack(Value))
 			end
 		end)
 
@@ -35,7 +35,7 @@ return function<T...>(
 		RemoveConnection:Disconnect()
 
 		for Instance, Value in InstanceMap do
-			Spawn(Stop :: any, unpack(Value))
+			Spawn(Stop, unpack(Value))
 		end
 	end
 end
