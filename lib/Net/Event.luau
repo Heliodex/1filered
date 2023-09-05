@@ -28,13 +28,12 @@ function Event.Listen()
 	if _CLIENT then
 		Remote.OnClientEvent:connect(
 			function(SingleFire, MultipleFire, IncomingCall)
-				print "event received from server"
 				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
-					for EventId, Call in SingleFire do
+					for EventId, Call in pairs(SingleFire) do
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
@@ -52,7 +51,7 @@ function Event.Listen()
 				if MultipleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.Fire"
 
-					for EventId, Calls in MultipleFire do
+					for EventId, Calls in pairs(MultipleFire) do
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
@@ -105,7 +104,7 @@ function Event.Listen()
 			local SendSingleFire = false
 
 			if Event.Outgoing[1] then
-				for EventId, Calls in Event.Outgoing[1] do
+				for EventId, Calls in pairs(Event.Outgoing[1]) do
 					if #Calls == 1 then
 						SingleFire[EventId] = Calls[1]
 						Event.Outgoing[1][EventId] = nil
@@ -117,7 +116,6 @@ function Event.Listen()
 
 			Remote:FireServer(
 				(function()
-					print "sending event to server"
 					if SendSingleFire then
 						return SingleFire
 					end
@@ -126,20 +124,22 @@ function Event.Listen()
 				Event.Outgoing[1],
 				Event.Outgoing[2]
 			)
-			table.clear(Event.Outgoing)
+			-- table.clear(Event.Outgoing)
+			for i, _ in pairs(Event.Outgoing) do
+				Event.Outgoing[i] = nil
+			end
 
 			-- debug.profileend()
 		end)
 	else
 		Remote.OnServerEvent:connect(
 			function(Player, SingleFire, MultipleFire, IncomingCall)
-				print "event received from client"
 				-- debug.profilebegin "Red.Listen.Incoming"
 
 				if SingleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
-					for EventId, Call in SingleFire do
+					for EventId, Call in pairs(SingleFire) do
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
@@ -157,7 +157,7 @@ function Event.Listen()
 				if MultipleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.MultipleFire"
 
-					for EventId, Calls in MultipleFire do
+					for EventId, Calls in pairs(MultipleFire) do
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
@@ -177,7 +177,7 @@ function Event.Listen()
 				if IncomingCall then
 					-- debug.profilebegin "Red.Listen.Incoming.Call"
 
-					for EventId, Calls in IncomingCall do
+					for EventId, Calls in pairs(IncomingCall) do
 						if Event.Callbacks[EventId] then
 							for _, Call in Calls do
 								Spawn(function()
@@ -234,12 +234,12 @@ function Event.Listen()
 		RunService.Heartbeat:connect(function()
 			-- debug.profilebegin "Red.Listen.Outgoing"
 
-			for Player, Packets in Event.Outgoing do
+			for Player, Packets in pairs(Event.Outgoing) do
 				local SingleCall = {}
 				local SendSingleCall = false
 
 				if Packets[1] then
-					for EventId, Calls in Packets[1] do
+					for EventId, Calls in pairs(Packets[1]) do
 						if #Calls == 1 then
 							SingleCall[EventId] = Calls[1]
 							Packets[1][EventId] = nil
@@ -252,7 +252,6 @@ function Event.Listen()
 				Remote:FireClient(
 					Player,
 					(function()
-						print "sending event to client"
 						if SendSingleCall then
 							return SingleCall
 						end
@@ -263,7 +262,10 @@ function Event.Listen()
 				)
 			end
 
-			table.clear(Event.Outgoing)
+			-- table.clear(Event.Outgoing)
+			for i, _ in pairs(Event.Outgoing) do
+				Event.Outgoing[i] = nil
+			end
 
 			-- debug.profileend()
 		end)
@@ -291,8 +293,6 @@ function Event.FireClient(Player: Player, EventName: string, ...)
 
 	local EventId = Serdes.IdentifierAsync(EventName)
 
-	print "queueing event to client"
-
 	if Event.Outgoing[Player] == nil then
 		Event.Outgoing[Player] = {}
 	end
@@ -306,7 +306,6 @@ function Event.FireClient(Player: Player, EventName: string, ...)
 	end
 
 	Event.AddQueue(Event.Outgoing[Player][1][EventId], { ... })
-	print "event to client queued"
 end
 
 function Event.FireServer(EventName: string, ...)
@@ -314,10 +313,7 @@ function Event.FireServer(EventName: string, ...)
 
 	local Args = { ... }
 
-	print "queueing event to server"
-
 	return Serdes.Identifier(EventName):Then(function(EventId)
-		print "THEN callback called"
 		if Event.Outgoing[1] == nil then
 			Event.Outgoing[1] = {}
 		end
@@ -327,7 +323,6 @@ function Event.FireServer(EventName: string, ...)
 		end
 
 		Event.AddQueue(Event.Outgoing[1][EventId], Args)
-		print "event to server queued"
 	end)
 end
 

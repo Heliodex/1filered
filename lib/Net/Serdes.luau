@@ -4,6 +4,7 @@ local Promise = require "../Util/Promise"
 local Serdes = {}
 
 Serdes.NextId = 1 -- StringValues think null bytes are empty strings
+Serdes.NextOT = 1
 
 function Serdes.RegisterIdentifier(Name: string)
 	assert(_SERVER, "RegisterIdentifier can only be called on the server")
@@ -13,10 +14,8 @@ function Serdes.RegisterIdentifier(Name: string)
 
 	local e = Event:FindFirstChild(Name)
 	if e then
-		print "[event exists, updatin']"
 		e.Value = Id
 	else
-		print "[event no exists, creatin']"
 		e = Instance.new "StringValue"
 		e.Name = Name
 		e.Value = Id
@@ -35,11 +34,8 @@ function Serdes.Identifier(Name: string)
 
 	local e
 	if _CLIENT then
-		print "new promise for client"
 		return Promise.new(function(Resolve)
-			print "waiting for child"
 			e = Event:WaitForChild(Name)
-			print "omg finaly"
 			if e.Value ~= nil then
 				Resolve(e.Value)
 			else
@@ -60,17 +56,25 @@ function Serdes.Identifier(Name: string)
 		end)
 	else
 		e = Event:FindFirstChild(Name)
-		print "promise resolution for server"
 		if e and e.Value then
 			return Promise.Resolve(e.Value)
 		end
-		print "WHO UP registering they identifier"
 		return Promise.Resolve(Serdes.RegisterIdentifier(Name))
 	end
 end
 
 function Serdes.IdentifierAsync(Name: string)
 	return Serdes.Identifier(Name):Await()
+end
+
+function Serdes.OneTime()
+	Serdes.NextOT += 1
+
+	if Serdes.NextOT == 0xFFFF + 1 then
+		Serdes.NextOT = 0
+	end
+
+	return string.char(Serdes.NextOT)
 end
 
 return Serdes

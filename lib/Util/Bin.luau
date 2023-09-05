@@ -18,6 +18,9 @@ return function()
 			end
 		end
 
-		table.clear(Bin)
+		-- table.clear(Bin)
+		for i, _ in pairs(Bin) do
+			Bin[i] = nil
+		end
 	end
 end

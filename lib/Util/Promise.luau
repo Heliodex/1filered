@@ -24,7 +24,6 @@ function Promise.Promise(Callback: (
 		end)
 
 		if not ok then
-			print("Rejection with", err)
 			self:_Reject(err)
 		end
 	end)
@@ -67,7 +66,6 @@ function Promise._Resolve(self: Promise, ...: any)
 		self.Status == "Pending",
 		"Cannot resolve a promise that is not pending."
 	)
-	print "_RESOLVED promise!!"
 
 	self.Status = "Resolved"
 	self.Value = { ... }
@@ -87,7 +85,6 @@ function Promise._Reject(self: Promise, ...: any)
 		self.Status == "Pending",
 		"Cannot reject a promise that is not pending."
 	)
-	print "_REJECTING promise"
 
 	self.Status = "Rejected"
 	self.Value = { ... }
@@ -108,12 +105,10 @@ function Promise.Then(
 	OnReject: ((...any) -> ...any)?
 ): Promise
 	return Promise.Promise(function(Resolve, Reject)
-		print "starting then"
 		local function PromiseResolutionProcedure(
 			Value: Promise | any,
 			...: any
 		)
-			print "resolution procedure"
 			if type(Value) == "table" and getmetatable(Value) == Promise then
 				if Value.Status == "Pending" then
 					table.insert(Value.OnResolve, Resolve)
