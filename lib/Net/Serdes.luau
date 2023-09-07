@@ -35,7 +35,7 @@ function Serdes.Identifier(Name: string)
 				Resolve(e.Value)
 			else
 				local Thread = Delay(5, function()
-					warn(
+					print(
 						"[Red.Serdes]: Retrieving identifier exceeded 5 seconds. Make sure '"
 							.. Name
 							.. "' is registered on the server."

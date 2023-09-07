@@ -47,7 +47,7 @@ function Clock.Advance(self: Clock, Delta: number)
 
 		-- if ReplicatedStorage:GetAttribute "RedDebug" then
 		-- 	warn(
-		-- 		"[Red.Clock] Clock is falling behind! Skipped "
+		-- 		"[Red.Clock]: Clock is falling behind! Skipped "
 		-- 			.. Skipped
 		-- 			.. " intervals."
 		-- 	)

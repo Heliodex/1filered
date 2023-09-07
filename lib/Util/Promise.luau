@@ -1,3 +1,5 @@
+local RunService = game:GetService "RunService"
+
 local Spawn = require "./Spawn"
 
 local Promise = {}
@@ -175,6 +177,12 @@ function Promise.Await(self: Promise): ...any
 	elseif self.Status == "Rejected" then
 		return error(unpack(self.Value))
 	end
+
+	local c = 0
+	repeat -- bruh
+		RunService.Stepped:wait()
+		c += 1
+	until self.Status ~= "Pending" or c > 500 -- random
 
 	local Current = coroutine.running()
 

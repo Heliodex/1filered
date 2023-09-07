@@ -10,6 +10,7 @@ local Promise = require "../Util/Promise"
 local Clock = require "../Util/Clock2"
 
 local Event = {}
+local nil_symbol = { __nil = true }
 
 Event.Callbacks = {} :: { [string]: ((...any) -> ...any)? }
 Event.Outgoing = {} :: any
@@ -25,6 +26,17 @@ function Event.Listen()
 			function(SingleFire, MultipleFire, IncomingCall)
 				-- debug.profilebegin "Red.Listen.Incoming"
 
+				--  replace nil symbols with nil
+				if SingleFire.__nil then
+					SingleFire = nil
+				end
+				if MultipleFire.__nil then
+					MultipleFire = nil
+				end
+				if IncomingCall.__nil then
+					IncomingCall = nil
+				end
+
 				if SingleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
 
@@ -32,18 +44,18 @@ function Event.Listen()
 						local Callback = Event.Callbacks[EventId]
 
 						local c = 0
-						repeat
+						repeat -- bruh
 							RunService.Stepped:wait()
 							Callback = Event.Callbacks[EventId]
 							c += 1
 						until Callback or c > 500 -- random
 
 						if Callback then
-						if type(Call) == "table" then
-							Spawn(Callback, unpack(Call))
-						else
-							Spawn(Callback, Call)
-						end
+							if type(Call) == "table" then
+								Spawn(Callback, unpack(Call))
+							else
+								Spawn(Callback, Call)
+							end
 						else
 							print "[Red]: Callback not found!"
 						end
@@ -75,7 +87,7 @@ function Event.Listen()
 				if IncomingCall then
 					-- debug.profilebegin "Red.Listen.Incoming.Call"
 
-					for _, Call in ipairs(IncomingCall) do
+					for _, Call in pairs(IncomingCall) do
 						local CallId = table.remove(Call, 1)
 						local Success = table.remove(Call, 1)
 
@@ -118,16 +130,23 @@ function Event.Listen()
 				end
 			end
 
-			Remote:FireServer(
-				(function()
-					if SendSingleFire then
-						return SingleFire
-					end
-					return nil
-				end)(),
-				Event.Outgoing[1],
-				Event.Outgoing[2]
-			)
+			-- nils cannot be sent properly across remoteevents in 2013,
+			-- so we have to use a symbol to represent nil
+			local sf = nil_symbol
+			if SendSingleFire then
+				sf = SingleFire
+			end
+
+			local eo1, eo2 = Event.Outgoing[1], Event.Outgoing[2]
+			if eo1 == nil then
+				eo1 = nil_symbol
+			end
+			if eo2 == nil then
+				eo2 = nil_symbol
+			end
+
+			Remote:FireServer(sf, eo1, eo2)
+
 			-- table.clear(Event.Outgoing)
 			for i, _ in pairs(Event.Outgoing) do
 				Event.Outgoing[i] = nil
@@ -139,6 +158,17 @@ function Event.Listen()
 		Remote.OnServerEvent:connect(
 			function(Player, SingleFire, MultipleFire, IncomingCall)
 				-- debug.profilebegin "Red.Listen.Incoming"
+
+				--  replace nil symbols with nil
+				if SingleFire.__nil then
+					SingleFire = nil
+				end
+				if MultipleFire.__nil then
+					MultipleFire = nil
+				end
+				if IncomingCall.__nil then
+					IncomingCall = nil
+				end
 
 				if SingleFire then
 					-- debug.profilebegin "Red.Listen.Incoming.SingleFire"
@@ -222,7 +252,7 @@ function Event.Listen()
 								table.insert(Event.Outgoing[Player][2], {
 									Call[1],
 									false,
-									"[RED] Event not found",
+									"[Red]: Event not found",
 								})
 							end
 						end
@@ -253,17 +283,23 @@ function Event.Listen()
 					end
 				end
 
-				Remote:FireClient(
-					Player,
-					(function()
-						if SendSingleCall then
-							return SingleCall
-						end
-						return nil
-					end)(),
-					Packets[1],
-					Packets[2]
-				)
+				-- nils cannot be sent properly across remoteevents in 2013,
+				-- so we have to use a symbol to represent nil
+				local sc = nil_symbol
+				if SendSingleCall then
+					sc = SingleCall
+				end
+
+				local p1, p2 = Packets[1], Packets[2]
+
+				if p1 == nil then
+					p1 = nil_symbol
+				end
+				if p2 == nil then
+					p2 = nil_symbol
+				end
+
+				Remote:FireClient(Player, sc, p1, p2)
 			end
 
 			-- table.clear(Event.Outgoing)
