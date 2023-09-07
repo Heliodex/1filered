@@ -1,4 +1,5 @@
 local Spawn = require "./Spawn"
+local typeof = require "../typeof"
 
 type BinItem = Instance | RBXScriptConnection | () -> ...any
 
@@ -19,7 +20,7 @@ return function()
 		end
 
 		-- table.clear(Bin)
-		for i, _ in pairs(Bin) do
+		for i, _ in ipairs(Bin) do
 			Bin[i] = nil
 		end
 	end

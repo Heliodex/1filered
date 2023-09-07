@@ -1,11 +1,12 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
-local Red = require(ReplicatedStorage.Red)(script)
+local Red = require(ReplicatedStorage.Red)
+if type(Red) == "function" then
+	Red = Red(script)
+end
 
--- The typical variable name for a script's namespace is Net
-local Net = Red.Server "NamespaceName"
+local x = 0
 
-Net:On("EventName", function(Player, i)
-	print("Received from", Player.Name .. ":", i)
-
-	Net:Fire(Player, "EventName", i + 1)
+Red.Clock.new(0.5, function()
+	print((x % 2 == 0) and "tock" or "tick,")
+	x = x + 1
 end)

@@ -32,7 +32,7 @@ return function<T>(Limit: number, Interval: number)
 				return false
 			end
 
-			CountKeyless = CountKeyless + 1
+			CountKeyless += 1
 		end
 
 		return true
