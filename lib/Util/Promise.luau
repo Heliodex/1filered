@@ -75,9 +75,9 @@ function Promise._Resolve(self: Promise, ...: any)
 	end
 
 	-- task.defer(task.cancel, self.Thread :: thread)
-	Delay(0, function()
+	coroutine.resume(coroutine.create(function()
 		coroutine.yield(self.Thread :: thread)
-	end)
+	end))
 end
 
 function Promise._Reject(self: Promise, ...: any)
@@ -94,9 +94,9 @@ function Promise._Reject(self: Promise, ...: any)
 	end
 
 	-- task.defer(task.cancel, self.Thread :: thread)
-	Delay(0, function()
+	coroutine.resume(coroutine.create(function()
 		coroutine.yield(self.Thread :: thread)
-	end)
+	end))
 end
 
 function Promise.Then(

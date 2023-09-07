@@ -1,35 +1,8 @@
-local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local Players = game:GetService "Players"
 
-local Remote
-local ClientFolder
-if _SERVER then
-	Remote = Instance.new "RemoteEvent"
-	Remote.Name = "RedEvent"
-	Remote.Parent = ReplicatedStorage
-
-	local function PlayerAdded(Player: Player)
-		ClientFolder = Instance.new "ScreenGui"
-
-		-- ClientFolder.Enabled = false
-		-- ClientFolder.ResetOnSpawn = false
-		ClientFolder.Name = "Red"
-		ClientFolder.Parent = Player:FindFirstChild "PlayerGui"
-	end
-
-	Players.PlayerAdded:connect(PlayerAdded)
-
-	for _, Player in ipairs(Players:GetPlayers()) do
-		PlayerAdded(Player)
-	end
-else
-	Remote = ReplicatedStorage:WaitForChild "RedEvent" :: RemoteEvent
-
-	ClientFolder = (
-		Players.LocalPlayer:FindFirstChild "PlayerGui" :: PlayerGui
-	):WaitForChild "Red" :: ScreenGui
-	ClientFolder.Parent = nil
-end
+local RedEvent = require "../RedEvent"
+local Remote = RedEvent.Remote
+local ClientFolder = RedEvent.ClientFolder
 
 local Serdes = require "./Serdes"
 local Event = require "./Event"
@@ -77,7 +50,7 @@ function Server.FireList(
 	EventName: string,
 	...
 )
-	for _, Player in PlayerList do
+	for _, Player in ipairs(PlayerList) do
 		self:Fire(Player, EventName, ...)
 	end
 end
@@ -190,7 +163,7 @@ function Net.Server(Name: string, Definitions: { string }?): Server
 	end
 
 	if Definitions then
-		for _, Term in Definitions do
+		for _, Term in ipairs(Definitions) do
 			Serdes.Identifier((Name :: string) .. "_" .. Term)
 		end
 	end

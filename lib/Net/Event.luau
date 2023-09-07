@@ -1,7 +1,7 @@
 local RunService = game:GetService "RunService"
-local ReplicatedStorage = game:GetService "ReplicatedStorage"
 
-local Remote = ReplicatedStorage:FindFirstChild "RedEvent" :: RemoteEvent
+local RedEvent = require "../RedEvent"
+local Remote = RedEvent.Remote
 
 local Serdes = require "./Serdes"
 
@@ -20,11 +20,6 @@ end
 
 function Event.Listen()
 	-- debug.setmemorycategory "Red.Listen"
-
-	if not Remote then
-		Remote = ReplicatedStorage:WaitForChild "RedEvent"
-	end
-
 	if _CLIENT then
 		Remote.OnClientEvent:connect(
 			function(SingleFire, MultipleFire, IncomingCall)
@@ -36,12 +31,21 @@ function Event.Listen()
 					for EventId, Call in pairs(SingleFire) do
 						local Callback = Event.Callbacks[EventId]
 
+						local c = 0
+						repeat
+							RunService.Stepped:wait()
+							Callback = Event.Callbacks[EventId]
+							c += 1
+						until Callback or c > 500 -- random
+
 						if Callback then
-							if type(Call) == "table" then
-								Spawn(Callback, unpack(Call))
-							else
-								Spawn(Callback, Call)
-							end
+						if type(Call) == "table" then
+							Spawn(Callback, unpack(Call))
+						else
+							Spawn(Callback, Call)
+						end
+						else
+							print "[Red]: Callback not found!"
 						end
 					end
 
@@ -55,7 +59,7 @@ function Event.Listen()
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
-							for _, Call in Calls do
+							for _, Call in ipairs(Calls) do
 								if type(Call) == "table" then
 									Spawn(Callback, unpack(Call))
 								else
@@ -71,7 +75,7 @@ function Event.Listen()
 				if IncomingCall then
 					-- debug.profilebegin "Red.Listen.Incoming.Call"
 
-					for _, Call in IncomingCall do
+					for _, Call in ipairs(IncomingCall) do
 						local CallId = table.remove(Call, 1)
 						local Success = table.remove(Call, 1)
 
@@ -161,7 +165,7 @@ function Event.Listen()
 						local Callback = Event.Callbacks[EventId]
 
 						if Callback then
-							for _, Call in Calls do
+							for _, Call in ipairs(Calls) do
 								if type(Call) == "table" then
 									Spawn(Callback, Player, unpack(Call))
 								else
@@ -179,7 +183,7 @@ function Event.Listen()
 
 					for EventId, Calls in pairs(IncomingCall) do
 						if Event.Callbacks[EventId] then
-							for _, Call in Calls do
+							for _, Call in ipairs(Calls) do
 								Spawn(function()
 									local CallId = table.remove(Call, 1)
 									local Result = {
@@ -214,7 +218,7 @@ function Event.Listen()
 								Event.Outgoing[Player][2] = {}
 							end
 
-							for _, Call in Calls do
+							for _, Call in ipairs(Calls) do
 								table.insert(Event.Outgoing[Player][2], {
 									Call[1],
 									false,

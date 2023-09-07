@@ -9,7 +9,7 @@ return function<T...>(
 ): () -> ()
 	local InstanceMap = {}
 
-	for _, Instance in CollectionService:GetTagged(Tag) do
+	for _, Instance in ipairs(CollectionService:GetTagged(Tag)) do
 		Spawn(function()
 			InstanceMap[Instance] = { Start(Instance) }
 		end)
@@ -34,7 +34,7 @@ return function<T...>(
 		AddConnection:Disconnect()
 		RemoveConnection:Disconnect()
 
-		for Instance, Value in InstanceMap do
+		for Instance, Value in pairs(InstanceMap) do
 			Spawn(Stop, unpack(Value))
 		end
 	end

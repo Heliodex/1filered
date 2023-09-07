@@ -1,5 +1,6 @@
-local ReplicatedStorage = game:GetService "ReplicatedStorage"
-local Event = ReplicatedStorage:FindFirstChild "RedEvent"
+local RedEvent = require "../RedEvent"
+local Event = RedEvent.Remote
+
 local Promise = require "../Util/Promise"
 local Serdes = {}
 
@@ -26,12 +27,6 @@ function Serdes.RegisterIdentifier(Name: string)
 end
 
 function Serdes.Identifier(Name: string)
-	if not Event then
-		-- Prevent infinite yield when darklua bundling
-		-- randomises the order of requires
-		Event = ReplicatedStorage:WaitForChild "RedEvent"
-	end
-
 	local e
 	if _CLIENT then
 		return Promise.new(function(Resolve)

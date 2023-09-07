@@ -8,11 +8,11 @@ return function()
 	return function(Item: BinItem)
 		table.insert(Bin, Item)
 	end, function()
-		for _, Item in Bin do
+		for _, Item in ipairs(Bin) do
 			if typeof(Item) == "Instance" then
 				Item:Destroy()
 			elseif typeof(Item) == "RBXScriptConnection" then
-				Item:Disconnect()
+				Item:disconnect()
 			elseif typeof(Item) == "function" then
 				Spawn(Item)
 			end
